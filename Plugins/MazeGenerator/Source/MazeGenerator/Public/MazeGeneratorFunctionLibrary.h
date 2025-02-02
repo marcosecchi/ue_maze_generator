@@ -5,6 +5,7 @@
 #include "MazeGeneratorFunctionLibrary.generated.h"
 
 enum class EMazeDirection : uint8;
+enum class EMazeType : uint8;
 
 UCLASS()
 class MAZEGENERATOR_API UMazeGeneratorFunctionLibrary : public UBlueprintFunctionLibrary
@@ -16,8 +17,8 @@ public:
 	static TMap<FIntVector, int32> GenerateEmptyMaze(int32 Width, int32 Height);
 
 	UFUNCTION(BlueprintCallable, Category="Maze Generation")
-	static TMap<FIntVector, int32> GenerateMaze(int32 Width, int32 Height);
-
+	static TMap<FIntVector, int32> GenerateMaze(const int32 Width, const int32 Height, EMazeType MazeType, float TypeSelectionPercentage);
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Maze Generation")
 	static FIntVector GetMazeSize(const TMap<FIntVector, int32> Map);
 

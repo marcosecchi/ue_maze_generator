@@ -59,24 +59,28 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
     	UE_LOG(LogMazeGenerator, Display, TEXT("Checking unvisited neighbors for tile (%d, %d)."), CurrentTile.X, CurrentTile.Y);
 
     	auto CurrentTileId = Map.FindRef(CurrentTile);
-    
+
     	// Check if there are any unvisited neighbors
-		if (!HasDoor(CurrentTileId, EMazeDirection::North) && Map.Contains(FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0)))
+    	auto CheckTile = FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0);
+		if (Map.Contains(CheckTile) && Map.FindRef(CheckTile) == 0)
 		{
 	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains North"));
 			AvailableDirections.Add(EMazeDirection::North);
 		}
-		if (!HasDoor(CurrentTileId, EMazeDirection::East) && Map.Contains(FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0)))
+    	CheckTile = FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0);
+		if (Map.Contains(CheckTile) && Map.FindRef(CheckTile) == 0)
 		{
 	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains East"));
 			AvailableDirections.Add(EMazeDirection::East);
 		}
-    	if (!HasDoor(CurrentTileId, EMazeDirection::South) && Map.Contains(FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0)))
+    	CheckTile = FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0);
+    	if (Map.Contains(CheckTile) && Map.FindRef(CheckTile) == 0)
     	{
 	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains South"));
     		AvailableDirections.Add(EMazeDirection::South);
     	}
-    	if (!HasDoor(CurrentTileId, EMazeDirection::West) && Map.Contains(FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0)))
+    	CheckTile = FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0);
+    	if (Map.Contains(CheckTile) && Map.FindRef(CheckTile) == 0)
     	{
 	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains West"));
     		AvailableDirections.Add(EMazeDirection::West);
@@ -85,9 +89,12 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
     	// If no opening is possible, remove tile from the visited list
     	if (AvailableDirections.Num() == 0)
     	{
+    		// Log visited list length
+			UE_LOG(LogMazeGenerator, Display, TEXT("--- Visited list length: %d"), VisitedList.Num());
     		UE_LOG(LogMazeGenerator, Display, TEXT("No available directions for tile (%d, %d). Removing tile from list."), CurrentTile.X, CurrentTile.Y);
 
 			VisitedList.Remove(CurrentTile);
+			UE_LOG(LogMazeGenerator, Display, TEXT("--- Visited list length: %d"), VisitedList.Num());
     		continue;;
     	}
     	
@@ -96,7 +103,6 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
     	CurrentTileId = AddDirection(CurrentTileId, SelectedDirection);
     	Map.Add(CurrentTile, CurrentTileId);
     	
-		UE_LOG(LogMazeGenerator, Display, TEXT("Adding neighbor for tile (%d, %d) with corresponding opening."), CurrentTile.X, CurrentTile.Y);
     	auto Tile = FIntVector(0, 0, 0);
     	auto TileId = 0;
     	switch (SelectedDirection)
@@ -124,6 +130,7 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
     	default:
     		break;
     	}
+		UE_LOG(LogMazeGenerator, Display, TEXT("Adding neighbor tile (%d, %d) with corresponding opening."), Tile.X, Tile.Y);
    		Map.Add(Tile, TileId);
     	VisitedList.Add(Tile);
     }

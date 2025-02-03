@@ -72,7 +72,7 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
 			VisitedList.Remove(CurrentTile);
     		continue;;
     	}
-    	const EMazeDirection SelectedDirection = AvailableDirections[FMath::RandRange(0, AvailableDirections.Num())];
+    	const EMazeDirection SelectedDirection = AvailableDirections[FMath::RandRange(0, AvailableDirections.Num() - 1)];
     	auto CurrentTileId = Map.FindRef(CurrentTile);
     	CurrentTileId = AddDirection(CurrentTileId, SelectedDirection);
     	Map.Add(CurrentTile, CurrentTileId);

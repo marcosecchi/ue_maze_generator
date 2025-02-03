@@ -14,14 +14,17 @@ class MAZEGENERATOR_API UMazeGeneratorFunctionLibrary : public UBlueprintFunctio
 
 public:
 	UFUNCTION(BlueprintCallable, Category="Maze Generation")
-	static TMap<FIntVector, int32> GenerateEmptyMaze(int32 Width, int32 Height);
+	static TMap<FIntVector, int32> GenerateEmptyMaze(int32 NumRows, int32 NumColumns);
 
 	UFUNCTION(BlueprintCallable, Category="Maze Generation")
-	static TMap<FIntVector, int32> GenerateMaze(const int32 Width, const int32 Height, EMazeType MazeType, float TypeSelectionPercentage);
+	static TMap<FIntVector, int32> GenerateMaze(const int32 NumRows, const int32 NumColumns, EMazeType MazeType, float TypeSelectionPercentage);
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Maze Generation")
 	static FIntVector GetMazeSize(const TMap<FIntVector, int32> Map);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Maze Generation")
 	static int32 AddDirection(int32 TileId, EMazeDirection Direction);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Maze Generation")
+	static bool HasDoor(int32 TileId, EMazeDirection Direction);
 };

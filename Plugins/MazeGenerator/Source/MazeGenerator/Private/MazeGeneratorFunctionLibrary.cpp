@@ -11,7 +11,7 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateEmptyMaze(const i
 	{
 		for (int32 Y = 0; Y < NumColumns; Y++)
 		{
-			Map.Add(FIntVector(X, Y, 0), -1);
+			Map.Add(FIntVector(X, Y, 0), 0);
 		}
 	}
 	UE_LOG(LogMazeGenerator, Display, TEXT("Creating empty map with %d rows and %d columns."), NumRows, NumColumns);
@@ -32,16 +32,17 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
 	Map.GetKeys(KeyList);
 
 	// Select the first random tile
-	auto SelectedIndex = FMath::RandRange(0, KeyList.Num() - 1);
+	const auto FirstSelectedIndex = FMath::RandRange(0, KeyList.Num() - 1);
 	TArray<FIntVector> VisitedList = {};
-	VisitedList.Add(KeyList[SelectedIndex]);
+	VisitedList.Add(KeyList[FirstSelectedIndex]);
 	
 	const auto ClampedSelectionPercentage = FMath::Clamp(TypeSelectionPercentage, 0.f, 1.f);
 
 	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- TILE GENERATION LOOP --------------"));
     while (VisitedList.Num() > 0)
     {
-	    if (const auto RandomPercentage = FMath::RandRange(0.f, ClampedSelectionPercentage); MazeType == EMazeType::LongPassages && RandomPercentage <= ClampedSelectionPercentage)
+		auto SelectedIndex = FMath::RandRange(0, VisitedList.Num() - 1);
+    	if (const auto RandomPercentage = FMath::RandRange(0.f, ClampedSelectionPercentage); MazeType == EMazeType::LongPassages && RandomPercentage <= ClampedSelectionPercentage)
     	{
     		SelectedIndex = VisitedList.Num() - 1;
     	}
@@ -57,21 +58,27 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
 
     	UE_LOG(LogMazeGenerator, Display, TEXT("Checking unvisited neighbors for tile (%d, %d)."), CurrentTile.X, CurrentTile.Y);
 
+    	auto CurrentTileId = Map.FindRef(CurrentTile);
+    
     	// Check if there are any unvisited neighbors
-		if (Map.Contains(FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0)))
+		if (!HasDoor(CurrentTileId, EMazeDirection::North) && Map.Contains(FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0)))
 		{
+	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains North"));
 			AvailableDirections.Add(EMazeDirection::North);
 		}
-		if (Map.Contains(FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0)))
+		if (!HasDoor(CurrentTileId, EMazeDirection::East) && Map.Contains(FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0)))
 		{
+	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains East"));
 			AvailableDirections.Add(EMazeDirection::East);
 		}
-    	if (Map.Contains(FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0)))
+    	if (!HasDoor(CurrentTileId, EMazeDirection::South) && Map.Contains(FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0)))
     	{
+	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains South"));
     		AvailableDirections.Add(EMazeDirection::South);
     	}
-    	if (Map.Contains(FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0)))
+    	if (!HasDoor(CurrentTileId, EMazeDirection::West) && Map.Contains(FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0)) && !VisitedList.Contains(FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0)))
     	{
+	    	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Contains West"));
     		AvailableDirections.Add(EMazeDirection::West);
     	}
 
@@ -86,7 +93,6 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
     	
 		UE_LOG(LogMazeGenerator, Display, TEXT("Randomize opening direction for tile (%d, %d)."), CurrentTile.X, CurrentTile.Y);
     	const EMazeDirection SelectedDirection = AvailableDirections[FMath::RandRange(0, AvailableDirections.Num() - 1)];
-    	auto CurrentTileId = Map.FindRef(CurrentTile);
     	CurrentTileId = AddDirection(CurrentTileId, SelectedDirection);
     	Map.Add(CurrentTile, CurrentTileId);
     	
@@ -99,25 +105,26 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
     		Tile = FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0);
     		TileId = Map.FindRef(Tile);
     		TileId = AddDirection(TileId, EMazeDirection::South);
-    		Map.Add(Tile, TileId);
+    		break;
     	case EMazeDirection::East:
     		Tile = FIntVector(CurrentTile.X, CurrentTile.Y + 1, 0);
     		TileId = Map.FindRef(Tile);
     		TileId = AddDirection(TileId, EMazeDirection::West);
-    		Map.Add(Tile, TileId);
+    		break;
     	case EMazeDirection::South:
-    		Tile = FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0);
+    		Tile = FIntVector(CurrentTile.X + 1, CurrentTile.Y, 0);
     		TileId = Map.FindRef(Tile);
     		TileId = AddDirection(TileId, EMazeDirection::North);
-    		Map.Add(Tile, TileId);
+    		break;
     	case EMazeDirection::West:
     		Tile = FIntVector(CurrentTile.X, CurrentTile.Y - 1, 0);
     		TileId = Map.FindRef(Tile);
     		TileId = AddDirection(TileId, EMazeDirection::East);
-    		Map.Add(Tile, TileId);
+    		break;
     	default:
     		break;
     	}
+   		Map.Add(Tile, TileId);
     	VisitedList.Add(Tile);
     }
 	return Map;

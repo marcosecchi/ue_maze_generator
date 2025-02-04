@@ -1,4 +1,4 @@
 # Maze Generator
-## For Unreal Engine 5
+_(for Unreal Engine 5)_
 
 A simple plugin to generate grid-based mazes by using 2-edge Wang Tiles.

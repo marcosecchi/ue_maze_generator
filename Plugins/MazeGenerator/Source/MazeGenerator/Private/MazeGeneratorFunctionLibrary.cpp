@@ -18,7 +18,7 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateEmptyMaze(const i
 	return Map;
 }
 
-TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 NumRows, const int32 NumColumns, const EMazeType MazeType = EMazeType::Random, const float TypeSelectionPercentage = 1.f)
+TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 NumRows, const int32 NumColumns, const EMazeType MazeType = EMazeType::Random, const float TypeSelectionPercentage = 1.f, int32 NumRandomlyRemovedTiles = 0)
 {
 	if (NumRows <= 0 || NumColumns <= 0)
 	{
@@ -28,6 +28,20 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
 	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- GENERATING MAP (%d, %d) --------------"), NumRows, NumColumns);
 
 	TMap<FIntVector, int32> Map = GenerateEmptyMaze(NumRows, NumColumns);
+
+	if (const auto ClampedNumRandomlyRemovedTiles = FMath::Clamp(NumRandomlyRemovedTiles, 0.f, Map.Num() - 1); ClampedNumRandomlyRemovedTiles > 0)
+	{
+		// remove random tiles
+	//	UE_LOG(LogMazeGenerator, Display, TEXT("Removing %d randomly generated tiles."), ClampedNumRandomlyRemovedTiles);
+		for (int32 i = 0; i < ClampedNumRandomlyRemovedTiles; i++)
+		{
+			const auto RandomIndex = FMath::RandRange(0, Map.Num() - 1);
+			TArray<FIntVector> FilterKeyList;
+			Map.GetKeys(FilterKeyList);
+			auto TileKey = FilterKeyList[RandomIndex];
+			Map.Remove(TileKey);
+		}
+	}
 	TArray<FIntVector> KeyList;
 	Map.GetKeys(KeyList);
 

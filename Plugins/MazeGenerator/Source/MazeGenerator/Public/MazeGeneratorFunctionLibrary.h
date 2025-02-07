@@ -4,6 +4,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "MazeGeneratorFunctionLibrary.generated.h"
 
+struct FMazeGenerationData;
 enum class EMazeDirection : uint8;
 enum class EMazeType : uint8;
 
@@ -24,7 +25,7 @@ public:
 	 * Generate a maze by using Wang Tiles
 	 */
 	UFUNCTION(BlueprintCallable, Category="Maze Generation")
-	static TMap<FIntVector, int32> GenerateMaze(const int32 NumRows, const int32 NumColumns, EMazeType MazeType, float TypeSelectionPercentage, int32 NumRandomlyRemovedTiles);
+	static TMap<FIntVector, int32> GenerateMaze(const FMazeGenerationData Data);
 
 	/**
 	 * Returns the size of the maze (number of rows and columns)

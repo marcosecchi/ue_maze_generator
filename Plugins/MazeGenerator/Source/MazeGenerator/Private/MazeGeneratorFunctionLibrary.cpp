@@ -1,6 +1,7 @@
 ﻿#include "MazeGeneratorFunctionLibrary.h"
 
 #include "MazeDirection.h"
+#include "MazeGenerationData.h"
 #include "MazeGeneratorLog.h"
 #include "MazeType.h"
 
@@ -18,18 +19,18 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateEmptyMaze(const i
 	return Map;
 }
 
-TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 NumRows, const int32 NumColumns, const EMazeType MazeType = EMazeType::Random, const float TypeSelectionPercentage = 1.f, int32 NumRandomlyRemovedTiles = 0)
+TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeGenerationData Data)
 {
-	if (NumRows <= 0 || NumColumns <= 0)
+	if (Data.NumRows <= 0 || Data.NumColumns <= 0)
 	{
 		UE_LOG(LogMazeGenerator, Error, TEXT("NumRows and NumColumns must be greater than zero."));
 		return {};
 	}
-	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- GENERATING MAP (%d, %d) --------------"), NumRows, NumColumns);
+	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- GENERATING MAP (%d, %d) --------------"), Data.NumRows, Data.NumColumns);
 
-	TMap<FIntVector, int32> Map = GenerateEmptyMaze(NumRows, NumColumns);
+	TMap<FIntVector, int32> Map = GenerateEmptyMaze(Data.NumRows, Data.NumColumns);
 
-	if (const auto ClampedNumRandomlyRemovedTiles = FMath::Clamp(NumRandomlyRemovedTiles, 0.f, Map.Num() - 1); ClampedNumRandomlyRemovedTiles > 0)
+	if (const auto ClampedNumRandomlyRemovedTiles = FMath::Clamp(Data.NumRandomlyRemovedTiles, 0.f, Map.Num() - 1); ClampedNumRandomlyRemovedTiles > 0)
 	{
 		// remove random tiles
 	//	UE_LOG(LogMazeGenerator, Display, TEXT("Removing %d randomly generated tiles."), ClampedNumRandomlyRemovedTiles);
@@ -50,17 +51,17 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const int32 
 	TArray<FIntVector> VisitedList = {};
 	VisitedList.Add(KeyList[FirstSelectedIndex]);
 	
-	const auto ClampedSelectionPercentage = FMath::Clamp(TypeSelectionPercentage, 0.f, 1.f);
+	const auto ClampedSelectionPercentage = FMath::Clamp(Data.MazeTypeSelectionPercentage, 0.f, 1.f);
 
 	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- TILE GENERATION LOOP --------------"));
     while (VisitedList.Num() > 0)
     {
 		auto SelectedIndex = FMath::RandRange(0, VisitedList.Num() - 1);
-    	if (const auto RandomPercentage = FMath::RandRange(0.f, ClampedSelectionPercentage); MazeType == EMazeType::LongPassages && RandomPercentage <= ClampedSelectionPercentage)
+    	if (const auto RandomPercentage = FMath::RandRange(0.f, ClampedSelectionPercentage); Data.MazeType == EMazeType::LongPassages && RandomPercentage <= ClampedSelectionPercentage)
     	{
     		SelectedIndex = VisitedList.Num() - 1;
     	}
-    	else if (MazeType == EMazeType::ShortPassages && RandomPercentage <= ClampedSelectionPercentage)
+    	else if (Data.MazeType == EMazeType::ShortPassages && RandomPercentage <= ClampedSelectionPercentage)
     	{
     		SelectedIndex = 0;
     	}

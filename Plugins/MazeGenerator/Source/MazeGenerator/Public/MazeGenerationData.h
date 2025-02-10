@@ -23,5 +23,6 @@ struct MAZEGENERATOR_API FMazeGenerationData
 	float MazeTypeSelectionPercentage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 NumRandomlyRemovedTiles;
+	TArray<FIntVector> ExclusionList;
+
 };

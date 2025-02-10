@@ -30,17 +30,11 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeG
 
 	TMap<FIntVector, int32> Map = GenerateEmptyMaze(Data.NumRows, Data.NumColumns);
 
-	if (const auto ClampedNumRandomlyRemovedTiles = FMath::Clamp(Data.NumRandomlyRemovedTiles, 0.f, Map.Num() - 1); ClampedNumRandomlyRemovedTiles > 0)
+	for (auto Element: Data.ExclusionList)
 	{
-		// remove random tiles
-	//	UE_LOG(LogMazeGenerator, Display, TEXT("Removing %d randomly generated tiles."), ClampedNumRandomlyRemovedTiles);
-		for (int32 i = 0; i < ClampedNumRandomlyRemovedTiles; i++)
+		if (Map.Find(Element) != nullptr)
 		{
-			const auto RandomIndex = FMath::RandRange(0, Map.Num() - 1);
-			TArray<FIntVector> FilterKeyList;
-			Map.GetKeys(FilterKeyList);
-			auto TileKey = FilterKeyList[RandomIndex];
-			Map.Remove(TileKey);
+			Map.Remove(Element);
 		}
 	}
 	TArray<FIntVector> KeyList;

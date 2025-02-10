@@ -43,5 +43,5 @@ public:
 	 * Checks if a tile has a door by its id
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Maze Generation")
-	static bool HasDoor(int32 TileId, EMazeDirection Direction);
+	static bool HasDirection(int32 TileId, EMazeDirection Direction);
 };

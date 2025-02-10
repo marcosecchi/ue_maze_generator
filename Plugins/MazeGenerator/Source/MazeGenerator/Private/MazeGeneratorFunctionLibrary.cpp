@@ -21,15 +21,16 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateEmptyMaze(const i
 
 TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeGenerationData Data)
 {
-	if (Data.NumRows <= 0 || Data.NumColumns <= 0)
-	{
-		UE_LOG(LogMazeGenerator, Error, TEXT("NumRows and NumColumns must be greater than zero."));
-		return {};
-	}
+	// Ensure data is valid
+	ensureMsgf((Data.NumRows > 0), TEXT("Maze Generator NumRows must be greater than zero."));
+	ensureMsgf((Data.NumColumns > 0), TEXT("Maze Generator NumColumns must be greater than zero."));
+
 	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- GENERATING MAP (%d, %d) --------------"), Data.NumRows, Data.NumColumns);
 
+	// Create the empty maze
 	TMap<FIntVector, int32> Map = GenerateEmptyMaze(Data.NumRows, Data.NumColumns);
 
+	// Remove excluded tiles from the map 
 	for (auto Element: Data.ExclusionList)
 	{
 		if (Map.Find(Element) != nullptr)
@@ -37,21 +38,25 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeG
 			Map.Remove(Element);
 		}
 	}
+
+	// Create a list of all tiles coordinates
 	TArray<FIntVector> KeyList;
 	Map.GetKeys(KeyList);
 
-	// Select the first random tile
-	const auto FirstSelectedIndex = FMath::RandRange(0, KeyList.Num() - 1);
+	// Create a list of the visited tiles and add the first, randomly selected, tile
 	TArray<FIntVector> VisitedList = {};
-	VisitedList.Add(KeyList[FirstSelectedIndex]);
+	VisitedList.Add(KeyList[FMath::RandRange(0, KeyList.Num() - 1)]);
 	
 	const auto ClampedSelectionPercentage = FMath::Clamp(Data.MazeTypeSelectionPercentage, 0.f, 1.f);
 
+	// Starts the main generation loop
 	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- TILE GENERATION LOOP --------------"));
-    while (VisitedList.Num() > 0)
+	while (VisitedList.Num() > 0)
     {
+		// Select a tile from the visited list: depending on the selection position,
+		// the maze will have longer or shorter paths
 		auto SelectedIndex = FMath::RandRange(0, VisitedList.Num() - 1);
-    	if (const auto RandomPercentage = FMath::RandRange(0.f, ClampedSelectionPercentage); Data.MazeType == EMazeType::LongPassages && RandomPercentage <= ClampedSelectionPercentage)
+    	if (const auto RandomPercentage = FMath::RandRange(0.f, 1.f); Data.MazeType == EMazeType::LongPassages && RandomPercentage <= ClampedSelectionPercentage)
     	{
     		SelectedIndex = VisitedList.Num() - 1;
     	}
@@ -63,11 +68,10 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeG
         FIntVector CurrentTile = VisitedList[SelectedIndex];
     	UE_LOG(LogMazeGenerator, Display, TEXT(">>> Current tile: (%d, %d)."), CurrentTile.X, CurrentTile.Y);
 
+	  	UE_LOG(LogMazeGenerator, Display, TEXT("Checking unvisited neighbors for tile (%d, %d)."), CurrentTile.X, CurrentTile.Y);
 	 	TArray<EMazeDirection> AvailableDirections;
 
-    	UE_LOG(LogMazeGenerator, Display, TEXT("Checking unvisited neighbors for tile (%d, %d)."), CurrentTile.X, CurrentTile.Y);
-
-    	auto CurrentTileId = Map.FindRef(CurrentTile);
+     	auto CurrentTileId = Map.FindRef(CurrentTile);
 
     	// Check if there are any unvisited neighbors
     	auto CheckTile = FIntVector(CurrentTile.X - 1, CurrentTile.Y, 0);
@@ -106,12 +110,14 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeG
 			UE_LOG(LogMazeGenerator, Display, TEXT("--- Visited list length: %d"), VisitedList.Num());
     		continue;;
     	}
-    	
+
+		// Adds the new opening to the selected tile
 		UE_LOG(LogMazeGenerator, Display, TEXT("Randomize opening direction for tile (%d, %d)."), CurrentTile.X, CurrentTile.Y);
     	const EMazeDirection SelectedDirection = AvailableDirections[FMath::RandRange(0, AvailableDirections.Num() - 1)];
     	CurrentTileId = AddDirection(CurrentTileId, SelectedDirection);
     	Map.Add(CurrentTile, CurrentTileId);
     	
+		// Adds the selected direction to the new tile and add the tile to the visited list
     	auto Tile = FIntVector(0, 0, 0);
     	auto TileId = 0;
     	switch (SelectedDirection)
@@ -146,6 +152,9 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeG
 	return Map;
 }
 
+/* **
+ * Returns the size of the maze (number of rows and columns)
+ */
 FIntVector UMazeGeneratorFunctionLibrary::GetMazeSize(const TMap<FIntVector, int32> Map)
 {
 	TArray<FIntVector> KeyList;
@@ -159,6 +168,9 @@ FIntVector UMazeGeneratorFunctionLibrary::GetMazeSize(const TMap<FIntVector, int
 	return Result;
 }
 
+/* **
+ * Adds a direction to a tile
+ */
 int32 UMazeGeneratorFunctionLibrary::AddDirection(const int32 TileId, const EMazeDirection Direction)
 {
 	switch (Direction)
@@ -176,7 +188,10 @@ int32 UMazeGeneratorFunctionLibrary::AddDirection(const int32 TileId, const EMaz
 	}
 }
 
-bool UMazeGeneratorFunctionLibrary::HasDoor(const int32 TileId, EMazeDirection const Direction)
+/* **
+ * Checks if a tile has a direction opened
+ */
+bool UMazeGeneratorFunctionLibrary::HasDirection(const int32 TileId, EMazeDirection const Direction)
 {
 	switch (Direction)
 	{

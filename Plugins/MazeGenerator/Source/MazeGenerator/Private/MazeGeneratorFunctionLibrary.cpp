@@ -3,7 +3,6 @@
 #include "MazeDirection.h"
 #include "MazeGenerationData.h"
 #include "MazeGeneratorLog.h"
-#include "MazeType.h"
 
 TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateEmptyMaze(const int32 NumRows, const int32 NumColumns)
 {
@@ -47,7 +46,7 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeG
 	TArray<FIntVector> VisitedList = {};
 	VisitedList.Add(KeyList[FMath::RandRange(0, KeyList.Num() - 1)]);
 	
-	const auto ClampedSelectionPercentage = FMath::Clamp(Data.MazeTypeSelectionPercentage, 0.f, 1.f);
+	const auto ClampedSelectionPercentage = FMath::Clamp(Data.LongPathsSelectionPercentage, 0.f, 1.f);
 
 	// Starts the main generation loop
 	UE_LOG(LogMazeGenerator, Display, TEXT("-------------- TILE GENERATION LOOP --------------"));
@@ -56,13 +55,9 @@ TMap<FIntVector, int32> UMazeGeneratorFunctionLibrary::GenerateMaze(const FMazeG
 		// Select a tile from the visited list: depending on the selection position,
 		// the maze will have longer or shorter paths
 		auto SelectedIndex = FMath::RandRange(0, VisitedList.Num() - 1);
-    	if (const auto RandomPercentage = FMath::RandRange(0.f, 1.f); Data.MazeType == EMazeType::LongPassages && RandomPercentage <= ClampedSelectionPercentage)
+    	if (const auto RandomPercentage = FMath::RandRange(0.f, 1.f) <= ClampedSelectionPercentage)
     	{
     		SelectedIndex = VisitedList.Num() - 1;
-    	}
-    	else if (Data.MazeType == EMazeType::ShortPassages && RandomPercentage <= ClampedSelectionPercentage)
-    	{
-    		SelectedIndex = 0;
     	}
     	
         FIntVector CurrentTile = VisitedList[SelectedIndex];

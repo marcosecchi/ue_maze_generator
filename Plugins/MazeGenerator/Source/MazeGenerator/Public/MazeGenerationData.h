@@ -21,13 +21,9 @@ struct MAZEGENERATOR_API FMazeGenerationData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(UIMin=1, UIMax=33, ClampMin=1, ClampMax=33))
 	int32 NumColumns;
 
-	// The type of maze to generate
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EMazeType MazeType;
-
 	// A percentage of selection used to influence the maze generation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(UIMin=0.f, UIMax=1.f, ClampMin=0.f, ClampMax=1.f))
-	float MazeTypeSelectionPercentage;
+	float LongPathsSelectionPercentage;
 
 	// A list of tile coordinates to be excluded from the maze
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

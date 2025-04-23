@@ -11,4 +11,4 @@ A simple plugin to generate grid-based mazes by using 2-edge Wang Tiles.
 
 ## Credits
 
-Road models by [Kenney](https://kenney.nl/assets/road-tileset).
+Road models by [Kenney](https://kenney.nl/assets/city-kit-roads).

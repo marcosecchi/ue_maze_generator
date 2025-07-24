@@ -5,8 +5,10 @@
 
 enum class EMazeType : uint8;
 
-/* **
- * A structured used as a parameter for the maze generation process
+/**
+ * This struct is used to hold the data required for maze generation.
+ * It includes the number of rows and columns, a selection percentage for long paths,
+ * and a list of tile coordinates to be excluded from the maze.
  */
 USTRUCT(BlueprintType, meta=(DisplayName="MazeGenerationData"))
 struct MAZEGENERATOR_API FMazeGenerationData

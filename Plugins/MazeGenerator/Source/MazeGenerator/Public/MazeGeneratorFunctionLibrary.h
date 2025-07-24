@@ -9,6 +9,11 @@ enum class EMazeDirection : uint8;
 enum class EMazeType : uint8;
 
 
+/**
+ * A Blueprint Function Library for generating mazes using Wang Tiles.
+ * This library provides functions to create empty mazes, generate mazes,
+ * and manipulate maze tiles by adding directions and checking for doors.
+ */
 UCLASS()
 class MAZEGENERATOR_API UMazeGeneratorFunctionLibrary : public UBlueprintFunctionLibrary
 {
